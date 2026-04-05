@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Nexus Life OS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 393px;
+  height: 852px;
+  overflow: hidden;
+  background: #07070f;
+  font-family: -apple-system, 'SF Pro Display', sans-serif;
+  position: relative;
+}
+
+.bg { position: absolute; inset: 0; background: linear-gradient(160deg, #06001a 0%, #0a0520 45%, #000820 100%); }
+.nebula1 { position: absolute; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(80,40,160,0.2) 0%, transparent 70%); top: -80px; left: -60px; }
+.nebula2 { position: absolute; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(0,120,200,0.1) 0%, transparent 70%); bottom: 80px; right: -60px; }
+canvas#stars { position: absolute; inset: 0; }
+
+.content {
+  position: relative;
+  z-index: 10;
+  height: 852px;
+  display: flex;
+  flex-direction: column;
+  /* Space for iPhone clock at top */
+  padding: 200px 22px 30px;
+}
+
+/* BADGE ROW */
+.badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.days-b {
+  background: rgba(120,80,255,0.28);
+  border: 0.5px solid rgba(140,100,255,0.5);
+  border-radius: 10px;
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(180,150,255,1);
+}
+
+.done-t {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+}
+
+.streak-b {
+  background: linear-gradient(135deg, #ff6b35, #ff3d71);
+  border-radius: 10px;
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* DOT GRID */
+#dotCanvas {
+  width: 100%;
+  height: 160px;
+  display: block;
+  margin-bottom: 14px;
+}
+
+/* GOAL PILL */
+.goal-pill {
+  background: rgba(255,255,255,0.07);
+  border: 0.5px solid rgba(255,255,255,0.14);
+  border-radius: 22px;
+  padding: 9px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.g-left { display: flex; align-items: center; gap: 8px; }
+.g-dot { width: 7px; height: 7px; border-radius: 50%; background: #7850ff; flex-shrink: 0; }
+.g-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+.g-val { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.92); }
+
+/* TASK CARDS */
+.task-card {
+  background: rgba(255,255,255,0.06);
+  border: 0.5px solid rgba(255,255,255,0.11);
+  border-radius: 18px;
+  padding: 11px 14px;
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.t-orb { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.t-info { flex: 1; }
+.t-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.92); }
+.t-sub { font-size: 10px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+.t-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 9px; }
+.b-now { background: rgba(120,80,255,0.25); color: rgba(160,130,255,1); border: 0.5px solid rgba(120,80,255,0.45); }
+.b-next { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.42); border: 0.5px solid rgba(255,255,255,0.14); }
+.b-done { background: rgba(76,255,145,0.1); color: rgba(76,255,145,0.7); border: 0.5px solid rgba(76,255,145,0.25); }
+
+/* WATER BAR */
+.water-bar {
+  background: rgba(0,180,255,0.08);
+  border: 0.5px solid rgba(0,180,255,0.22);
+  border-radius: 16px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.drops { display: flex; gap: 3px; flex-shrink: 0; }
+.drop { width: 8px; height: 10px; border-radius: 50% 50% 50% 50%/60% 60% 40% 40%; background: rgba(0,180,255,0.22); }
+.drop.on { background: #00b4ff; }
+.w-info { flex: 1; }
+.w-title { font-size: 12px; font-weight: 600; color: rgba(0,200,255,0.95); }
+.w-sub { font-size: 9px; color: rgba(0,180,255,0.52); margin-top: 2px; }
+
+/* QUOTE */
+.quote {
+  font-size: 10px;
+  color: rgba(255,255,255,0.28);
+  text-align: center;
+  font-style: italic;
+  line-height: 1.5;
+  padding: 0 10px;
+  margin-top: auto;
+}
+
+/* HOME PILL */
+.home-pill {
+  width: 120px; height: 5px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  margin: 10px auto 0;
+}
+
+/* POWERED */
+.powered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 6px;
+}
+.p-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(120,80,255,0.5); }
+.p-text { font-size: 7px; font-weight: 500; color: rgba(120,80,255,0.45); letter-spacing: 1.5px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="nebula1"></div>
+<div class="nebula2"></div>
+<canvas id="stars"></canvas>
+
+<div class="content">
+
+  <!-- BADGE ROW -->
+  <div class="badge-row">
+    <div class="days-b" id="daysEl">270 days left</div>
+    <div class="done-t" id="doneEl">2026 · 26% done</div>
+    <div class="streak-b">🔥 <span id="streakEl">12</span> streak</div>
+  </div>
+
+  <!-- DOT GRID -->
+  <canvas id="dotCanvas"></canvas>
+
+  <!-- GOAL -->
+  <div class="goal-pill">
+    <div class="g-left">
+      <div class="g-dot"></div>
+      <span class="g-label">Yearly Goal</span>
+    </div>
+    <span class="g-val" id="goalEl">Build your best year yet</span>
+  </div>
+
+  <!-- TASK 1 -->
+  <div class="task-card">
+    <div class="t-orb" style="background:rgba(255,107,53,0.2)" id="t1Emoji">💪</div>
+    <div class="t-info">
+      <div class="t-name" id="t1Name">Morning Workout</div>
+      <div class="t-sub" id="t1Time">5:00 AM · 45 min</div>
+    </div>
+    <div class="t-badge b-next" id="t1Badge">NEXT</div>
+  </div>
+
+  <!-- TASK 2 -->
+  <div class="task-card">
+    <div class="t-orb" style="background:rgba(120,80,255,0.2)" id="t2Emoji">📖</div>
+    <div class="t-info">
+      <div class="t-name" id="t2Name">Deep Work Session</div>
+      <div class="t-sub" id="t2Time">9:00 AM · 2 hrs</div>
+    </div>
+    <div class="t-badge b-now" id="t2Badge">NOW</div>
+  </div>
+
+  <!-- WATER -->
+  <div class="water-bar">
+    <div class="drops" id="drops"></div>
+    <div class="w-info">
+      <div class="w-title">Hydration</div>
+      <div class="w-sub" id="wSub">3 of 8 · next in 2 hrs</div>
+    </div>
+  </div>
+
+  <!-- QUOTE -->
+  <div class="quote" id="quoteEl">"Small daily improvements lead to staggering long-term results."</div>
+
+  <!-- POWERED -->
+  <div class="powered">
+    <div class="p-dot"></div>
+    <span class="p-text">Powered by Neural Intelligence</span>
+    <div class="p-dot"></div>
+  </div>
+
+  <div class="home-pill"></div>
+</div>
+
+<script>
+const QUOTES = [
+  '"Small daily improvements lead to staggering long-term results."',
+  '"Discipline is choosing what you want most over what you want now."',
+  '"You don\'t rise to goals — you fall to your systems."',
+  '"Every day is a deposit into your future."',
+  '"Work in silence. Let your results make the noise."',
+  '"Stop waiting for motivation. Start with discipline."',
+  '"The person you\'ll be tomorrow depends on what you do today."',
+];
+
+// Stars
+function drawStars() {
+  const c = document.getElementById('stars');
+  c.width = 393; c.height = 852;
+  const ctx = c.getContext('2d');
+  for (let i = 0; i < 90; i++) {
+    const x = Math.random()*393, y = Math.random()*852;
+    const r = Math.random()*1.2+0.2;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${(Math.random()*0.45+0.05).toFixed(2)})`;
+    ctx.fill();
+  }
+}
+
+// Dot Grid
+function drawDots() {
+  const cv = document.getElementById('dotCanvas');
+  const ctx = cv.getContext('2d');
+  const W = 349, H = 160;
+  cv.width = W*2; cv.height = H*2; ctx.scale(2,2);
+  const now = new Date(), yr = now.getFullYear();
+  const pct = (now - new Date(yr,0,1)) / (new Date(yr+1,0,1) - new Date(yr,0,1));
+  const cols=24, rows=7, total=cols*rows, filled=Math.round(total*pct);
+  const gap=Math.floor(W/cols), dotR=gap*0.32;
+  const ox=(W-cols*gap)/2+gap/2, oy=(H-rows*gap*0.78)/2;
+  ctx.clearRect(0,0,W,H);
+  for (let i=0; i<total; i++) {
+    const x=ox+(i%cols)*gap, y=oy+Math.floor(i/cols)*gap*0.78;
+    ctx.beginPath();
+    if (i===filled-1) { ctx.arc(x,y,dotR+1.5,0,Math.PI*2); ctx.fillStyle='#ff6b35'; }
+    else if (i<filled) { ctx.arc(x,y,dotR,0,Math.PI*2); ctx.fillStyle='rgba(180,140,255,0.85)'; }
+    else { ctx.arc(x,y,dotR,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.12)'; }
+    ctx.fill();
+  }
+}
+
+// Update everything
+function update() {
+  const now = new Date();
+  const h = now.getHours(), yr = now.getFullYear();
+  const start = new Date(yr,0,1), end = new Date(yr+1,0,1);
+  const pct = Math.round((now-start)/(end-start)*100);
+  const dLeft = Math.ceil((end-now)/86400000);
+
+  document.getElementById('daysEl').textContent = `${dLeft} days left`;
+  document.getElementById('doneEl').textContent = `${yr} · ${pct}% done`;
+
+  // Task badges
+  const b1=document.getElementById('t1Badge'), b2=document.getElementById('t2Badge');
+  if (h>=5&&h<6) { b1.textContent='NOW'; b1.className='t-badge b-now'; b2.textContent='NEXT'; b2.className='t-badge b-next'; }
+  else if (h>=9&&h<11) { b1.textContent='DONE'; b1.className='t-badge b-done'; b2.textContent='NOW'; b2.className='t-badge b-now'; }
+  else if (h>=11) { b1.textContent='DONE'; b1.className='t-badge b-done'; b2.textContent='DONE'; b2.className='t-badge b-done'; }
+  else { b1.textContent='NEXT'; b1.className='t-badge b-next'; b2.textContent='NEXT'; b2.className='t-badge b-next'; }
+
+  // Water
+  const glass = Math.min(Math.floor(h/3), 8);
+  const c = document.getElementById('drops'); c.innerHTML='';
+  for (let i=0;i<8;i++) { const d=document.createElement('div'); d.className='drop'+(i<glass?' on':''); c.appendChild(d); }
+  const nextMin = (3*60) - (h%3)*60 - now.getMinutes();
+  document.getElementById('wSub').textContent = `${glass} of 8 · next in ${nextMin} min`;
+
+  // Quote
+  document.getElementById('quoteEl').textContent = QUOTES[Math.floor(Date.now()/(1000*60*60*4))%QUOTES.length];
+
+  drawDots();
+}
+
+drawStars();
+update();
+setInterval(update, 60000);
+</script>
+</body>
+</html>
